@@ -4,21 +4,7 @@ import psycopg2
 import hashlib
 import urllib.parse as urlparse
 
-# def get_db_connection():
-#     result = urlparse.urlparse(os.environ['DATABASE_URL'])
-#     username = result.username
-#     password = result.password
-#     database = result.path[1:]
-#     hostname = result.hostname
-#     port = result.port
 
-#     return psycopg2.connect(
-#         database=database,
-#         user=username,
-#         password=password,
-#         host=hostname,
-#         port=port
-#     )
 
 # # def get_db_connection():
 # #     return psycopg2.connect(
@@ -116,7 +102,21 @@ def hash_password(password):
 
 
 # for render.com
+def get_db_connection():
+    result = urlparse.urlparse(os.environ['DATABASE_URL'])
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
 
+    return psycopg2.connect(
+        database=database,
+        user=username,
+        password=password,
+        host=hostname,
+        port=port
+    )
 def initialize_db():
     db_url = os.environ['DATABASE_URL']
     result = urlparse.urlparse(db_url)
