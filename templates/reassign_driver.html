@@ -1,0 +1,11 @@
+<h2>Reassign Driver for Booking #{{ booking_id }}</h2>
+<form method="post">
+  <label>Select Driver:</label><br>
+  <select name="driver_id">
+    {% for d in drivers %}
+      <option value="{{ d[0] }}">{{ d[1] }}</option>
+    {% endfor %}
+  </select><br><br>
+  <button type="submit">Reassign</button>
+</form>
+<a href="/allbookings">Cancel</a>

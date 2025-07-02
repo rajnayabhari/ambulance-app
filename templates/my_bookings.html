@@ -1,0 +1,26 @@
+<h2>My Ambulance Bookings</h2>
+<table border="1">
+  <tr>
+    <th>Patient</th><th>Phone</th><th>Pickup</th><th>Destination</th>
+    <th>Status</th><th>Driver</th><th>Time</th>
+  </tr>
+  {% for booking in bookings %}
+  <tr>
+    <td>{{ booking[1] }}</td>
+    <td>{{ booking[2] }}</td>
+    <td>{{ booking[3] }}</td>
+    <td>{{ booking[4] }}</td>
+    <td>{{ booking[5] }}</td>
+    <td>{{ booking[7] or 'Unassigned' }}</td>
+    <td>{{ booking[6] }}</td>
+    <td>
+    {% if booking[5] == 'Accepted' and booking[7] != 'Unassigned' %}
+    <a href="/track_driver/{{ booking[0] }}">Track Driver</a>
+  {% else %}
+    N/A
+  {% endif %}
+</td>
+  </tr>
+  {% endfor %}
+</table>
+<a href="/home">Back</a>

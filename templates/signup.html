@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Sign Up</title></head>
+<body>
+<h2>Create Account</h2>
+<form method="post">
+  <input name="username" placeholder="Username" required><br>
+  <input name="email" placeholder="Email" required><br>
+  <input name="password" type="password" placeholder="Password" required><br>
+
+  <label>Select Role:</label><br>
+  <select name="role" required>
+    <option value="user">User</option>
+    <option value="driver">Driver</option>
+  </select><br><br>
+
+  <button type="submit">Sign Up</button>
+</form>
+<p>Already have an account? <a href="/signin">Sign In</a></p>
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+</body>
+</html>

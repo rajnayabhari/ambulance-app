@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Book Ambulance</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h2>Ambulance Booking</h2>
+
+  <form method="post">
+    <input name="patient_name" placeholder="Patient Name" required><br><br>
+    <input name="phone_no" placeholder="Phone Number" required><br><br>
+    <input name="destination" placeholder="Destination" required><br><br>
+    <button type="submit">Book</button>
+  </form>
+
+  <p id="location-status" style="color: green;"></p>
+
+  <script>
+    function sendUserLocation(lat, lng) {
+      fetch('/update_user_location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: lat, longitude: lng })
+      }).then(() => {
+        document.getElementById("location-status").innerText = "Live location shared with driver.";
+      });
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => sendUserLocation(pos.coords.latitude, pos.coords.longitude),
+        (err) => {
+          console.warn('Geolocation error:', err);
+          document.getElementById("location-status").innerText = "Location access denied or failed.";
+          document.getElementById("location-status").style.color = "red";
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      document.getElementById("location-status").innerText = "Geolocation not supported by browser.";
+      document.getElementById("location-status").style.color = "red";
+    }
+  </script>
+
+  <a href="/home">Back</a>
+</body>
+</html>

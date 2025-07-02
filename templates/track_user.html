@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Track User Location</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+</head>
+<body>
+<h2>Tracking User Location</h2>
+<div id="map" style="height: 400px;"></div>
+
+<script>
+  const map = L.map('map').setView([0, 0], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  let marker, routeControl;
+
+  async function updateUserMap() {
+    const res = await fetch('/get_user_location/{{ user_id }}');
+    const data = await res.json();
+    if (!data.lat || !data.lng) return;
+
+    const userLatLng = [data.lat, data.lng];
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const driverLatLng = [position.coords.latitude, position.coords.longitude];
+
+      if (!routeControl) {
+        routeControl = L.Routing.control({
+          waypoints: [
+            L.latLng(driverLatLng),
+            L.latLng(userLatLng)
+          ],
+          routeWhileDragging: false
+        }).addTo(map);
+      } else {
+        routeControl.setWaypoints([driverLatLng, userLatLng]);
+      }
+
+      if (!marker) {
+        marker = L.marker(userLatLng).addTo(map).bindPopup("User Location").openPopup();
+        map.setView(userLatLng, 15);
+      } else {
+        marker.setLatLng(userLatLng);
+      }
+    });
+  }
+
+  setInterval(updateUserMap, 5000);
+</script>
+
+<a href="/driverbookings">Back</a>
+</body>
+</html>

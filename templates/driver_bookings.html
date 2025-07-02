@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Booking List</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+  <style>
+    #map-container {
+      display: none;
+      margin-top: 20px;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Available and Assigned Ambulance Bookings</h2>
+
+{% if bookings %}
+<table border="1">
+  <tr>
+    <th>User</th>
+    <th>Patient</th>
+    <th>Phone</th>
+    <th>Destination</th>
+    <th>Status</th>
+    <th>Time</th>
+    <th>Action</th>
+    <th>Track</th>
+  </tr>
+  {% for b in bookings %}
+  <tr>
+    <td>{{ b[1] }}</td>
+    <td>{{ b[2] }}</td>
+    <td>{{ b[3] }}</td>
+    <td>{{ b[5] }}</td>
+    <td>{{ b[6] }}</td>
+    <td>{{ b[7] }}</td>
+    <td>
+      {% if b[6] == 'Pending' and b[8] == None %}
+        <a href="/accept_booking/{{ b[0] }}">Accept</a>
+      {% elif b[6] == 'Accepted' and b[8] == driver_id %}
+        <a href="/complete_booking/{{ b[0] }}">Complete</a>
+      {% else %}
+        -
+      {% endif %}
+    </td>
+    <td>
+      {% if b[6] == 'Accepted' and b[8] == driver_id %}
+        <button onclick="trackUser({{ b[0] }}, {{ b[8] }})">Track User</button>
+      {% else %}
+        -
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No bookings available for you at the moment.</p>
+{% endif %}
+
+<!-- Map container (initially hidden) -->
+<div id="map-container">
+  <h3>User Location & Route</h3>
+  <div id="map"></div>
+</div>
+
+<script>
+  let map, routeControl;
+
+  function showMap() {
+    document.getElementById('map-container').style.display = 'block';
+    if (!map) {
+      map = L.map('map').setView([0, 0], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
+  }
+
+  function trackUser(bookingId, driverId) {
+    showMap();
+    fetch(`/get_user_id_from_booking/${bookingId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.user_id) {
+          fetch(`/get_user_location/${data.user_id}`)
+            .then(res => res.json())
+            .then(userLoc => {
+              if (userLoc.lat && userLoc.lng) {
+                const userLatLng = [userLoc.lat, userLoc.lng];
+                navigator.geolocation.getCurrentPosition(driverPos => {
+                  const driverLatLng = [
+                    driverPos.coords.latitude,
+                    driverPos.coords.longitude
+                  ];
+                  if (routeControl) map.removeControl(routeControl);
+                  routeControl = L.Routing.control({
+                    waypoints: [
+                      L.latLng(driverLatLng),
+                      L.latLng(userLatLng)
+                    ],
+                    routeWhileDragging: false
+                  }).addTo(map);
+                  map.setView(driverLatLng, 14);
+                });
+              } else {
+                alert("User location not available.");
+              }
+            });
+        }
+      });
+  }
+
+  // NEW: Start sending driver's GPS location to backend
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      (position) => {
+        fetch('/update_location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          })
+        });
+      },
+      (err) => {
+        console.error("Driver location access denied or error:", err);
+      },
+      { enableHighAccuracy: true }
+    );
+  } else {
+    alert("Geolocation not supported by your browser.");
+  }
+</script>
+
+
+<a href="/home">Back</a>
+</body>
+</html>

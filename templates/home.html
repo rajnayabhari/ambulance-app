@@ -1,0 +1,11 @@
+<ul>
+  {% if role == 'user' %}
+    <li><a href="/book">Book Ambulance</a></li>
+    <li><a href="/mybookings">My Bookings</a></li>
+  {% elif role == 'driver' %}
+    <li><a href="/driverbookings">View Ambulance Bookings</a></li>
+  {% elif role == 'admin' %}
+    <li><a href="/allbookings">All Bookings</a></li>
+  {% endif %}
+  <li><a href="/logout">Logout</a></li>
+</ul>

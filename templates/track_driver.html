@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Track Ambulance</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Tracking Ambulance to Your Location</h2>
+<div id="map"></div>
+
+<script>
+  let map = L.map('map').setView([0, 0], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  let routeControl;
+
+  function trackDriverToUser() {
+    navigator.geolocation.getCurrentPosition(userPos => {
+      const userLatLng = [userPos.coords.latitude, userPos.coords.longitude];
+
+      fetch('/get_driver_location/{{ driver_id }}')
+        .then(res => res.json())
+        .then(driver => {
+          if (!driver.lat || !driver.lng) {
+            alert("Driver location unavailable.");
+            return;
+          }
+
+          const driverLatLng = [driver.lat, driver.lng];
+
+          if (routeControl) map.removeControl(routeControl);
+          routeControl = L.Routing.control({
+            waypoints: [
+              L.latLng(driverLatLng),
+              L.latLng(userLatLng)
+            ],
+            routeWhileDragging: false,
+            show: true,
+            collapsible: false
+          }).addTo(map);
+
+          map.setView(driverLatLng, 14);
+        });
+    }, err => {
+      alert("Could not access your location: " + err.message);
+    });
+  }
+
+  trackDriverToUser();
+  setInterval(trackDriverToUser, 10000); // auto-refresh every 10s
+</script>
+
+<a href="/mybookings">Back</a>
+</body>
+</html>
